@@ -2,13 +2,60 @@
     <html>
         <head>
             <title>czx's website</title>
+            <style>
+                .hide{
+                    color:#5bdad4;
+                    position:absolute;
+                }
+                .menu{
+                    background-color:rgb(195, 196, 198);
+                    position:fixed;
+                    left:0;
+                    top:0;
+                    height:100vh;
+                    width:7vw;
+                }
+                .menu a{
+                    display:flex;
+                    color:black;
+                    background-color:rgb(143, 144, 145);
+                    border-radius:0.7vw;
+                    text-decoration:none;
+                    font-size:1.5vw;
+                    flex-direction:column;
+                    justify-content:center;
+                    text-align:center;
+                    margin:1vh 0 0;
+                    width:7vw;
+                    height:3vw;
+                }
+                .menu a:hover{
+                    background-color:gray;
+                }
+                .page{
+                    min-height:100vh;
+                    width:auto;
+                    position:relative;
+                }
+            </style>
         </head>
-        <body style="background-color:#79F7F0;margin:0">
-            <div style="text-align:center;color:#ECDC17;font-size:2vw;font-weight:bold;line-height:3vw;padding-top:1vw">
-                <img src="headphoto.png" alt="头像" style="margin:0 0 -0.6vw;width:4vw;border-radius:50%"><span style="font-size:3vw">Welcome!</span><br>
-                <span style="text-decoration:line-through;color:rgb(136, 138, 7)">一点也不</span>欢迎来到伟大的辞职信0的<span style="text-decoration:line-through;color:rgb(136, 138, 7)">私人的</span>网站
+        <body style="margin:0">
+            <div class="menu">
+                <a href="#home">首页</a>
+                <a href="#sign">登录</a>
             </div>
-            <div style="color:#5bdad4;font-size:2vw;position:absolute;left:5vw;top:5vw">lazy大战奶龙</div>
-            <div style="color:#5bdad4;font-size:2vw;position:absolute;right:5vw;top:5vw">lazy大战奶龙</div>
+            <div style="margin-left:7vw;width:auto;height:100vh">
+                <div id="home" class="page" style="background-color:#79F7F0;">
+                    <div style="text-align:center;color:#ECDC17;font-size:2vw;font-weight:bold;line-height:3vw;padding-top:1vw">
+                        <img src="headphoto.png" alt="头像" style="margin:0 0 -0.6vw;width:4vw;border-radius:50%"><span style="font-size:3vw">Welcome!</span><br>
+                        <span style="text-decoration:line-through;color:rgb(136, 138, 7)">一点也不</span>欢迎来到伟大的辞职信0的<span style="text-decoration:line-through;color:rgb(136, 138, 7)">私人的</span>网站
+                    </div>
+                    <div class="hide" style="font-size:2vw;left:5vw;top:5vw">lazy大战奶龙</div>
+                    <div class="hide" style="font-size:2vw;right:5vw;top:5vw">lazy大战奶龙</div>
+                </div>
+                <div id="sign" class="page" style="background-color:white">
+                    <div style="color:black;font-size:10vw;text-align:center">我还没写</div>
+                </div>
+            </div>
         </body>
     </html>
