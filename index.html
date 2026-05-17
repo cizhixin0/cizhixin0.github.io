@@ -57,5 +57,20 @@
                     <div style="color:black;font-size:10vw;text-align:center">我还没写</div>
                 </div>
             </div>
+        
+
+
+
+            <script type="module">
+            import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+
+            const supabase = createClient(
+                'https://rqcuvnbaepwwserwhtry.supabase.co',
+                'sb_publishable_sFA_uTiMlU-bZPVj8rE7wQ_TfwXWE1Z'
+            )
+
+            window.supabase = supabase
+            console.log('✅ Supabase 已连接！')
+        </script>
         </body>
     </html>
