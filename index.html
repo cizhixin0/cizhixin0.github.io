@@ -43,6 +43,13 @@
                     width:auto;
                     position:relative;
                 }
+                .inputplace{
+                    width:100%;
+                    height:3vh;
+                    font-size:1vw;
+                    margin-bottom:1vh;
+                    padding:0.5vh;
+                }
             </style>
         </head>
         <body style="margin:0;overflow:hidden">
@@ -51,7 +58,9 @@
                 <a href="#sign">登录</a>
                 <a href="#inform">信息</a>
             </div>
+
             <div style="margin-left:7vw;width:auto;height:100vh">
+
                 <div id="home" class="page" style="background-color:#79F7F0;">
                     <div style="text-align:center;color:#ECDC17;font-size:2vw;font-weight:bold;line-height:3vw;padding-top:1vw">
                         <img src="headphoto.png" alt="头像" style="margin:0 0 -0.6vw;width:4vw;border-radius:50%"><span style="font-size:3vw">Welcome!</span><br>
@@ -61,36 +70,68 @@
                     <div class="hide" style="font-size:2vw;right:5vw;top:5vw">lazy大战奶龙</div>
                 </div>
 
-                <div id="sign" class="page" style="background-color:white">
-                    <div style="color:black;font-size:10vw;text-align:center">我还没写</div>
+                <div id="sign" class="page" style="background-color:bisque;display:flex;justify-content:center;align-items:center;">
+                    <div style="align-items:center;text-align:center;width:20vw;">
+                        <div style="font-size:4vw;margin-bottom:2vh;">请登录</div>
+                        <input id="email" type="email" placeholder="邮箱" class="inputplace">
+                        <input id="password" type="password" placeholder="密码" class="inputplace">
+                        <button id="login-btn" style="width:70%;height:6vh;font-size:2vw;border-radius:1vh">登录</button>
+                        <div id="remind-msg" style="color:red;font-size:1vw;margin-top:1vh;"></div>
+                    </div>
                 </div>
 
                 <div id="inform" class="page" style="background-color:white">
-                    <div class="square" style="position:absolute;left:3vw;top:3vh;width:30vw">
-                        <div style="font-size:1.5vw;">更新日志</div>
-                        <div style="font-size:1vw;">不记得了：成功建立本网站</div>
-                        <div style="font-size:1vw;">2026.5.14：菜单栏上线</div>
-                        <div style="font-size:1vw;">2026.5.17：后端成功连接</div>
-                        <div style="font-size:1vw;">此下用于凑数</div>
-                        <div style="font-size:1vw;">阿巴阿巴阿巴</div>
-                        <div style="font-size:1vw;">阿巴阿巴阿巴</div>
+                    <div class="square" style="position:absolute;left:3vw;top:3vh;width:40vw">
+                        <div style="font-size:3vw;">更新日志</div>
+                        <div style="font-size:2vw;">不记得了：成功建立本网站</div>
+                        <div style="font-size:2vw;">2026.5.14：菜单栏上线</div>
+                        <div style="font-size:2vw;">2026.5.17：后端成功连接</div>
+                        <div style="font-size:2vw;">此下用于凑数</div>
+                        <div style="font-size:2vw;">阿巴阿巴阿巴</div>
+                        <div style="font-size:2vw;">阿巴阿巴阿巴</div>
                     </div>
                 </div>
+
             </div>
         
 
 
 
             <script type="module">
-            import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+            import{createClient}from'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
 
-            const supabase = createClient(
+            const supabase=createClient(
                 'https://rqcuvnbaepwwserwhtry.supabase.co',
                 'sb_publishable_sFA_uTiMlU-bZPVj8rE7wQ_TfwXWE1Z'
             )
 
-            window.supabase = supabase
+            window.supabase=supabase
             console.log('✅ Supabase 已连接！')
+
+            const login_btn=document.getElementById('login-btn')
+            const input_email=document.getElementById('email')
+            const input_password=document.getElementById('password')
+            const remind_msg=document.getElementById('remind-msg')
+
+            async function do_login() {
+                const email=input_email.value
+                const password=input_password.value
+                if (!email||!password){
+                    remind_msg.textContent='请输入邮箱和密码'
+                    return
+                }
+                const{data,error}=await supabase.auth.signInWithPassword({
+                    email:email,
+                    password:password
+                })
+                if(error){
+                    remind_msg.textContent='登录失败:'+error.message
+                }else{
+                    remind_msg.style.color='green'
+                    remind_msg.textContent='登录成功！当前用户：'+data.user.email
+                }
+            }
+            login_btn.addEventListener('click',do_login)
         </script>
         </body>
     </html>
