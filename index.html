@@ -58,8 +58,13 @@
                     justify-content:center;
                     align-items:center;
                 }
+                #personal:target{
+                    display:flex;
+                    justify-content:center;
+                    align-items:center;
+                }
                 .inputplace{
-                    width:100%;
+                    width:60%;
                     height:3vh;
                     font-size:1vw;
                     margin-bottom:1vh;
@@ -71,7 +76,8 @@
         <body style="margin:0;overflow:hidden;">
             <div class="menu">
                 <a href="#home">首页</a>
-                <a href="#sign">登录</a>
+                <a href="#sign" id="signpage">登录</a>
+                <a href="#personal" id="personalpage">个人</a>
                 <a href="#inform">信息</a>
             </div>
 
@@ -89,10 +95,27 @@
                 <div id="sign" class="page" style="background-color:bisque;">
                     <div style="align-items:center;text-align:center;width:20vw;">
                         <div style="font-size:4vw;margin-bottom:2vh;">请登录</div>
-                        <input id="email" type="email" placeholder="邮箱" class="inputplace">
-                        <input id="password" type="password" placeholder="密码" class="inputplace">
+                        <input id="email_input" type="email" placeholder="邮箱" class="inputplace">
+                        <input id="password_input" type="password" placeholder="密码" class="inputplace">
                         <button id="login-btn" style="width:70%;height:6vh;font-size:2vw;border-radius:1vh">登录</button>
                         <div id="remind-msg" style="color:red;font-size:1vw;margin-top:1vh;"></div>
+                    </div>
+                </div>
+
+                <div id="personal" class="page" style="background-color:bisque;">
+                    <div style="text-align:center;">
+                        <div style="font-size:4vw;">个人信息</div>
+                        <div id="emailname" style="font-size:2vw;"></div>
+                        <div style="font-size:1.5vw;margin-top:1vh;">
+                            昵称：<span id="nickname_show" style="font-weight:bold;">未设置</span>
+                            <button id="change_nickname_btn" style="font-size:1vw;margin-left:1vw;">更改</button>
+                        </div>
+                        <div id="nickname_edit" style="display:none;margin-top:1vh;">
+                            <input id="nickname_input" type="text" placeholder="请输入新昵称" class="inputplace">
+                            <button id="save_nickname_btn" style="font-size:1vw;">保存</button>
+                            <button id="cancel_nickname_btn" style="font-size:1vw;">取消</button>
+                        </div>
+                        <button id="logout-btn" style="width:100%;height:6vh;font-size:2vw;border-radius:1vh;margin-top:1vh">登出</button>
                     </div>
                 </div>
 
@@ -103,6 +126,8 @@
                         <div style="font-size:2vw;">2026.5.14:菜单栏上线</div>
                         <div style="font-size:2vw;">2026.5.17:后端成功连接</div>
                         <div style="font-size:2vw;">2026.5.18:登录功能上线</div>
+                        <div style="font-size:2vw;">2026.5.19:个人信息页上线</div>
+                        <div style="font-size:2vw;">2026.5.19:昵称修改功能上线</div>
                         <div style="font-size:2vw;">此下用于凑数</div>
                         <div style="font-size:2vw;">阿巴阿巴阿巴</div>
                         <div style="font-size:2vw;">阿巴阿巴阿巴</div>
@@ -126,9 +151,20 @@
             console.log('✅ Supabase 已连接！')
 
             const login_btn=document.getElementById('login-btn')
-            const input_email=document.getElementById('email')
-            const input_password=document.getElementById('password')
+            const input_email=document.getElementById('email_input')
+            const input_password=document.getElementById('password_input')
             const remind_msg=document.getElementById('remind-msg')
+            const logout_btn=document.getElementById('logout-btn')
+            const signpage=document.getElementById('signpage')
+            const personalpage=document.getElementById('personalpage')
+            const nickname_show=document.getElementById('nickname_show')
+            const change_nickname_btn=document.getElementById('change_nickname_btn')
+            const save_nickname_btn=document.getElementById('save_nickname_btn')
+            const cancel_nickname_btn=document.getElementById('cancel_nickname_btn')
+            const nickname_edit=document.getElementById('nickname_edit')
+            const nickname_input=document.getElementById('nickname_input')
+            personalpage.style.display='none'
+            await supabase.auth.signOut()
 
             async function do_login() {
                 const email=input_email.value
@@ -137,18 +173,88 @@
                     remind_msg.textContent='请输入邮箱和密码'
                     return
                 }
+                login_btn.disabled=true
+                login_btn.textContent='登录中...'
                 const{data,error}=await supabase.auth.signInWithPassword({
                     email:email,
                     password:password
                 })
+                login_btn.disabled=false
+                login_btn.textContent='登录'
                 if(error){
                     remind_msg.textContent='登录失败:'+error.message
                 }else{
                     remind_msg.style.color='green'
                     remind_msg.textContent='登录成功！当前用户：'+data.user.email
+                    document.getElementById('emailname').textContent='当前用户：'+data.user.email
+                    window.location.hash='#personal'
+                    signpage.style.display='none'
+                    personalpage.style.display='flex'
+                    load_nickname()
                 }
             }
+
+            async function do_logout(){
+                logout_btn.disabled=true
+                logout_btn.textContent='登出中...'
+                await supabase.auth.signOut()
+                logout_btn.disabled=false
+                logout_btn.textContent='登出'
+                signpage.style.display='flex'
+                personalpage.style.display='none'
+                window.location.hash='#sign'
+                remind_msg.style.color='red'
+                remind_msg.textContent=''
+            }
+            logout_btn.addEventListener('click',do_logout)
             login_btn.addEventListener('click',do_login)
+
+            async function load_nickname(){
+                const{data:{user}}=await supabase.auth.getUser()
+                if(!user)return
+                const{data}=await supabase.from('profiles').select('nickname').eq('user_id',user.id).single()
+                if(data&&data.nickname){
+                    nickname_show.textContent=data.nickname
+                }else nickname_show.textContent='未设置'
+            }
+
+            change_nickname_btn.addEventListener('click',function(){
+                nickname_edit.style.display='block'
+                nickname_input.value=nickname_show.textContent
+            })
+
+            cancel_nickname_btn.addEventListener('click',function(){
+                nickname_edit.style.display='none'
+            })
+
+            save_nickname_btn.addEventListener('click',async function(){
+                save_nickname_btn.disabled=true
+                save_nickname_btn.textContent='保存中...'
+                const{data:{user}}=await supabase.auth.getUser()
+                if(!user){
+                    save_nickname_btn.disabled=false
+                    save_nickname_btn.textContent='保存'
+                    return
+                }
+                const changed_nickname=nickname_input.value
+                await supabase
+                    .from('profiles')
+                    .upsert({user_id:user.id,nickname:changed_nickname})
+                nickname_show.textContent=changed_nickname
+                nickname_edit.style.display='none'
+                save_nickname_btn.disabled=false
+                save_nickname_btn.textContent='保存'
+            })
+
+            async function check_login(){
+                const{data,error}=await supabase.auth.getSession()
+                if(data.session){
+                    console.log('已登录，用户：'+data.session.user.email)
+                }else{
+                    console.log('未登录')
+                }
+            }
+            check_login()
         </script>
         </body>
     </html>
