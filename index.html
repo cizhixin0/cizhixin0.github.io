@@ -76,9 +76,9 @@
         <body style="margin:0;overflow:hidden;">
             <div class="menu">
                 <a href="#home">首页</a>
+                <a href="#inform">信息</a>
                 <a href="#sign" id="signpage">登录</a>
                 <a href="#personal" id="personalpage">个人</a>
-                <a href="#inform">信息</a>
             </div>
 
             <div style="margin-left:7vw;width:auto;height:100vh;overflow:hidden;position:relative">
@@ -88,8 +88,12 @@
                         <img src="headphoto.png" alt="头像" style="margin:0 0 -0.6vw;width:4vw;border-radius:50%"><span style="font-size:3vw">Welcome!</span><br>
                         <span style="text-decoration:line-through;color:rgb(136, 138, 7)">一点也不</span>欢迎来到伟大的辞职信0的<span style="text-decoration:line-through;color:rgb(136, 138, 7)">私人的</span>网站
                     </div>
-                    <div class="hide" style="font-size:2vw;left:5vw;top:5vw">lazy大战奶龙</div>
-                    <div class="hide" style="font-size:2vw;right:5vw;top:5vw">lazy大战奶龙</div>
+                    <div class="hide" style="font-size:2vw;left:5vw;top:10vh">lazy大战奶龙</div>
+                    <div class="hide" style="font-size:2vw;right:5vw;top:10vh">lazy大战奶龙</div>
+                    <div style="position:absolute;left:5vw;top:20vh;">
+                        <button id="sign_btn" style="height:4vw;font-size:2vw;width:7vw;border-radius:0.5vh;background-color:#f3701e;color:white;text-align:center;">签到</button>
+                        <div id="sign_msg" style="color:red;font-size:1vw;margin-top:1vh;"></div>
+                    </div>
                 </div>
 
                 <div id="sign" class="page" style="background-color:bisque;">
@@ -98,7 +102,7 @@
                         <input id="email_input" type="email" placeholder="邮箱" class="inputplace">
                         <input id="password_input" type="password" placeholder="密码" class="inputplace">
                         <button id="login-btn" style="width:70%;height:6vh;font-size:2vw;border-radius:1vh">登录</button>
-                        <div id="remind-msg" style="color:red;font-size:1vw;margin-top:1vh;"></div>
+                        <div id="remind-msg" style="color:red;font-size:1vw;margin-top:1vh;text-align:center;"></div>
                     </div>
                 </div>
 
@@ -115,6 +119,9 @@
                             <button id="save_nickname_btn" style="font-size:1vw;">保存</button>
                             <button id="cancel_nickname_btn" style="font-size:1vw;">取消</button>
                         </div>
+                        <div style="font-size:1.5vw;margin-top:1vh;">
+                            积分：<span id="point_show" style="font-weight:bold;"></span>
+                        </div>
                         <button id="logout-btn" style="width:100%;height:6vh;font-size:2vw;border-radius:1vh;margin-top:1vh">登出</button>
                     </div>
                 </div>
@@ -128,9 +135,15 @@
                         <div style="font-size:2vw;">2026.5.18:登录功能上线</div>
                         <div style="font-size:2vw;">2026.5.19:个人信息页上线</div>
                         <div style="font-size:2vw;">2026.5.19:昵称修改功能上线</div>
+                        <div style="font-size:2vw;">2026.5.20:签到功能上线</div>
                         <div style="font-size:2vw;">此下用于凑数</div>
                         <div style="font-size:2vw;">阿巴阿巴阿巴</div>
                         <div style="font-size:2vw;">阿巴阿巴阿巴</div>
+                    </div>
+                    <div class="square" style="position:absolute;left:46vw;top:3vh;width:45vw">
+                        <div style="font-size:3vw;">公告</div>
+                        <div style="font-size:2vw;">由于辞职信0个人疏忽，所有用户信息重载</div>
+                        <div style="font-size:2vw;">2026.5.20:庆祝代码超过260行</div>
                     </div>
                 </div>
 
@@ -163,6 +176,10 @@
             const cancel_nickname_btn=document.getElementById('cancel_nickname_btn')
             const nickname_edit=document.getElementById('nickname_edit')
             const nickname_input=document.getElementById('nickname_input')
+            const point_show=document.getElementById('point_show')
+            const sign_btn=document.getElementById('sign_btn')
+            const sign_msg=document.getElementById('sign_msg')
+
             personalpage.style.display='none'
             await supabase.auth.signOut()
 
@@ -190,7 +207,7 @@
                     window.location.hash='#personal'
                     signpage.style.display='none'
                     personalpage.style.display='flex'
-                    load_nickname()
+                    load_profiles()
                 }
             }
 
@@ -205,17 +222,45 @@
                 window.location.hash='#sign'
                 remind_msg.style.color='red'
                 remind_msg.textContent=''
+
+                sign_btn.textContent='签到'
+                sign_btn.style.fontSize='2vw'
+                sign_btn.style.opacity='1'
+                sign_btn.disabled=false
+                sign_msg.textContent=''
             }
             logout_btn.addEventListener('click',do_logout)
             login_btn.addEventListener('click',do_login)
 
-            async function load_nickname(){
+            async function load_profiles(){
                 const{data:{user}}=await supabase.auth.getUser()
                 if(!user)return
-                const{data}=await supabase.from('profiles').select('nickname').eq('user_id',user.id).single()
-                if(data&&data.nickname){
-                    nickname_show.textContent=data.nickname
-                }else nickname_show.textContent='未设置'
+                const{data}=await supabase.from('profiles').select('nickname,point,last_sign_date').eq('user_id',user.id).single()
+                sign_msg.textContent=''
+                if(data){
+                    if(data.nickname){
+                        nickname_show.textContent=data.nickname
+                    }else nickname_show.textContent='未设置'
+                    if(data.point){
+                        point_show.textContent=data.point
+                    }else point_show.textContent='0'
+                    if(data.last_sign_date===new Date().toISOString().split('T')[0]){
+                        sign_btn.textContent='今日已签到'
+                        sign_btn.style.opacity='0.7'
+                        sign_btn.style.fontSize='1vw'
+                        sign_btn.disabled=true
+                    }else{
+                        sign_btn.textContent='签到'
+                        sign_btn.style.fontSize='2vw'
+                        sign_btn.style.opacity='1'
+                        sign_btn.disabled=false
+                        sign_msg.textContent=''
+                        sign_msg.style.color='red'
+                    }
+                }else{
+                    nickname_show.textContent='未设置'
+                    point_show.textContent='0'
+                }
             }
 
             change_nickname_btn.addEventListener('click',function(){
@@ -227,6 +272,28 @@
                 nickname_edit.style.display='none'
             })
 
+            sign_btn.addEventListener('click',async function(){
+                const{data:{user}}=await supabase.auth.getUser()
+                if(!user){
+                    sign_msg.textContent='请先登录'
+                    return
+                }
+                const{data,error}=await supabase.from('profiles').select('last_sign_date,point').eq('user_id',user.id).single()
+                const today=new Date().toISOString().split('T')[0]
+                sign_btn.disabled=true
+                sign_btn.textContent='签到中'
+                await supabase.from('profiles').upsert({
+                    user_id:user.id,
+                    last_sign_date:today,
+                    point:data?data.point+10:10
+                })
+                sign_msg.style.color='green'
+                sign_msg.textContent='签到成功！积分+10'
+                point_show.textContent=data?data.point+10:10
+                sign_btn.textContent='今日已签到'
+                sign_btn.style.fontSize='1vw'
+                sign_btn.style.opacity='0.7'
+            })
             save_nickname_btn.addEventListener('click',async function(){
                 save_nickname_btn.disabled=true
                 save_nickname_btn.textContent='保存中...'
@@ -237,24 +304,15 @@
                     return
                 }
                 const changed_nickname=nickname_input.value
-                await supabase
-                    .from('profiles')
-                    .upsert({user_id:user.id,nickname:changed_nickname})
+                await supabase.from('profiles').upsert({
+                    user_id:user.id,
+                    nickname:changed_nickname
+                })
                 nickname_show.textContent=changed_nickname
                 nickname_edit.style.display='none'
                 save_nickname_btn.disabled=false
                 save_nickname_btn.textContent='保存'
             })
-
-            async function check_login(){
-                const{data,error}=await supabase.auth.getSession()
-                if(data.session){
-                    console.log('已登录，用户：'+data.session.user.email)
-                }else{
-                    console.log('未登录')
-                }
-            }
-            check_login()
         </script>
         </body>
     </html>
