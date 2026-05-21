@@ -94,6 +94,10 @@
                         <button id="sign_btn" style="height:4vw;font-size:2vw;width:7vw;border-radius:0.5vh;background-color:#f3701e;color:white;text-align:center;">签到</button>
                         <div id="sign_msg" style="color:red;font-size:1vw;margin-top:1vh;"></div>
                     </div>
+                    <div style="position:absolute;right:20vw;top:20vh;background-color:rgb(176, 170, 170);border-radius:2vh;min-width:30vw;text-align:center">
+                        <div style="font-size:2.5vw;font-weight:bold;">排行榜</div>
+                        <div id="rank_list" style="font-size:1.5vw;margin-top:1vh;"></div>
+                    </div>
                 </div>
 
                 <div id="sign" class="page" style="background-color:bisque;">
@@ -122,6 +126,13 @@
                         <div style="font-size:1.5vw;margin-top:1vh;">
                             积分：<span id="point_show" style="font-weight:bold;"></span>
                         </div>
+                        <div style="font-size:1.5vw;margin-top:1vh;">
+                            等级：<span id="level_show" style="font-weight:bold;">1</span>
+                            <button id="levelup_btn" style="font-size:1vw">
+                                升级(需<span id="levelup_cost">50</span>积分)
+                            </button>
+                            <div id="levelup_msg" style="color:green;font-size:1vw;margin-top:0.5vh;"></div>
+                        </div>
                         <button id="logout-btn" style="width:100%;height:6vh;font-size:2vw;border-radius:1vh;margin-top:1vh">登出</button>
                     </div>
                 </div>
@@ -136,14 +147,16 @@
                         <div style="font-size:2vw;">2026.5.19:个人信息页上线</div>
                         <div style="font-size:2vw;">2026.5.19:昵称修改功能上线</div>
                         <div style="font-size:2vw;">2026.5.20:签到功能上线</div>
+                        <div style="font-size:2vw;">2026.5.21:升级功能、排行榜上线</div>
                         <div style="font-size:2vw;">此下用于凑数</div>
                         <div style="font-size:2vw;">阿巴阿巴阿巴</div>
                         <div style="font-size:2vw;">阿巴阿巴阿巴</div>
                     </div>
                     <div class="square" style="position:absolute;left:46vw;top:3vh;width:45vw">
                         <div style="font-size:3vw;">公告</div>
-                        <div style="font-size:2vw;">由于辞职信0个人疏忽，所有用户信息重载</div>
+                        <div style="font-size:2vw;">2026.5.19:由于辞职信0个人疏忽，所有用户信息重载</div>
                         <div style="font-size:2vw;">2026.5.20:庆祝代码超过260行</div>
+                        <div style="font-size:2vw;">2026.5.21:庆祝代码超过330行</div>
                     </div>
                 </div>
 
@@ -179,10 +192,42 @@
             const point_show=document.getElementById('point_show')
             const sign_btn=document.getElementById('sign_btn')
             const sign_msg=document.getElementById('sign_msg')
+            const levelup_btn=document.getElementById('levelup_btn')
+            const levelup_cost=document.getElementById('levelup_cost')
+            const levelup_msg=document.getElementById('levelup_msg')
+            const level_show=document.getElementById('level_show')
+            const rank_list=document.getElementById('rank_list')
 
             personalpage.style.display='none'
-            await supabase.auth.signOut()
+            //await supabase.auth.signOut()
+            async function load_rank(){
+                const result=await supabase.from('profiles').select('nickname,level').order('level',{ascending:false})
+                if(result.data&&result.data.length>0){
+                    let html=''
+                    for(let i=0;i<result.data.length;i++){
+                        const nickname=result.data[i].nickname||'未设置'
+                        html=html+(i+1)+'.   '+nickname+'    Lv.'+result.data[i].level+'<br>'
+                    }
+                    rank_list.innerHTML=html
+                }else{
+                    rank_list.textContent='暂无数据'
+                }
+            }
+            load_rank()
 
+            async function check_login(){
+                const{data}=await supabase.auth.getSession()
+                if(data.session){
+                    signpage.style.display='none'
+                    personalpage.style.display='flex'
+                    document.getElementById('emailname').textContent='当前用户：'+data.session.user.email
+                    load_profiles()
+                }else{
+                    signpage.style.display='flex'
+                    personalpage.style.display='none'
+                }
+            }
+            check_login()
             async function do_login() {
                 const email=input_email.value
                 const password=input_password.value
@@ -235,7 +280,7 @@
             async function load_profiles(){
                 const{data:{user}}=await supabase.auth.getUser()
                 if(!user)return
-                const{data}=await supabase.from('profiles').select('nickname,point,last_sign_date').eq('user_id',user.id).single()
+                const{data}=await supabase.from('profiles').select('nickname,point,last_sign_date,level').eq('user_id',user.id).single()
                 sign_msg.textContent=''
                 if(data){
                     if(data.nickname){
@@ -257,9 +302,13 @@
                         sign_msg.textContent=''
                         sign_msg.style.color='red'
                     }
+                    if(data.level){
+                        level_show.textContent=data.level
+                    }else level_show.textContent='1'
                 }else{
                     nickname_show.textContent='未设置'
                     point_show.textContent='0'
+                    level_show.textContent='1'
                 }
             }
 
@@ -278,18 +327,25 @@
                     sign_msg.textContent='请先登录'
                     return
                 }
-                const{data,error}=await supabase.from('profiles').select('last_sign_date,point').eq('user_id',user.id).single()
+                const{data,error}=await supabase.from('profiles').select('last_sign_date,point,sign_streak').eq('user_id',user.id).single()
                 const today=new Date().toISOString().split('T')[0]
+                const yesterday=new Date(Date.now()-24*60*60*1000).toISOString().split('T')[0]
                 sign_btn.disabled=true
                 sign_btn.textContent='签到中'
+                let streak=data&&data.sign_streak?data.sign_streak:0
+                if(data&&data.last_sign_date==yesterday){
+                    streak=streak+1
+                }else streak=1
+                const add_point=Math.min(10+streak*5-5,30)
                 await supabase.from('profiles').upsert({
                     user_id:user.id,
                     last_sign_date:today,
-                    point:data?data.point+10:10
+                    point:data?data.point+add_point:add_point,
+                    sign_streak:streak
                 })
                 sign_msg.style.color='green'
-                sign_msg.textContent='签到成功！积分+10'
-                point_show.textContent=data?data.point+10:10
+                sign_msg.textContent='签到成功！积分+'+add_point
+                point_show.textContent=data?data.point+add_point:add_point
                 sign_btn.textContent='今日已签到'
                 sign_btn.style.fontSize='1vw'
                 sign_btn.style.opacity='0.7'
@@ -312,6 +368,36 @@
                 nickname_edit.style.display='none'
                 save_nickname_btn.disabled=false
                 save_nickname_btn.textContent='保存'
+            })
+
+            levelup_btn.addEventListener('click',async function(){
+                const{data:{user}}=await supabase.auth.getUser()
+                if(!user)return
+                const{data}=await supabase.from('profiles').select('point,level').eq('user_id',user.id).single()
+                const now_point=data&&data.point?data.point:0
+                const now_level=data&&data.level?data.level:1
+                const cost=(Math.floor((now_level-1)/5)+1)*50
+                if(now_point<cost){
+                    levelup_msg.style.color='red'
+                    levelup_msg.textContent='积分不足'
+                    return
+                }
+                levelup_btn.disabled=true
+                levelup_btn.textContent='升级中...'
+                const new_point=now_point-cost
+                const new_level=now_level+1
+                await supabase.from('profiles').upsert({
+                    user_id:user.id,
+                    point:new_point,
+                    level:new_level
+                })
+                point_show.textContent=new_point
+                level_show.textContent=new_level
+                levelup_cost.textContent=((Math.floor((new_level-1)/5)+1)*50)
+                levelup_msg.style.color='green'
+                levelup_msg.textContent='升级成功！当前Lv.'+new_level
+                levelup_btn.disabled=false
+                levelup_btn.textContent='升级(需'+((Math.floor((new_level-1)/5)+1)*50)+'积分)'
             })
         </script>
         </body>
