@@ -148,6 +148,7 @@
                         <div style="font-size:2vw;">2026.5.19:昵称修改功能上线</div>
                         <div style="font-size:2vw;">2026.5.20:签到功能上线</div>
                         <div style="font-size:2vw;">2026.5.21:升级功能、排行榜上线</div>
+                        <div style="font-size:2vw;">2026.5.23:修复签到bug</div>
                         <div style="font-size:2vw;">此下用于凑数</div>
                         <div style="font-size:2vw;">阿巴阿巴阿巴</div>
                         <div style="font-size:2vw;">阿巴阿巴阿巴</div>
@@ -322,6 +323,7 @@
             })
 
             sign_btn.addEventListener('click',async function(){
+                sign_btn.disabled=true
                 const{data:{user}}=await supabase.auth.getUser()
                 if(!user){
                     sign_msg.textContent='请先登录'
@@ -330,7 +332,12 @@
                 const{data,error}=await supabase.from('profiles').select('last_sign_date,point,sign_streak').eq('user_id',user.id).single()
                 const today=new Date().toISOString().split('T')[0]
                 const yesterday=new Date(Date.now()-24*60*60*1000).toISOString().split('T')[0]
-                sign_btn.disabled=true
+                if(data&&data.last_sign_date===today){
+                    sign_msg.textContent='今日已签到'
+                    sign_btn.style.fontSize='1vw'
+                    sign_btn.style.opacity='0.7'
+                    return
+                }
                 sign_btn.textContent='签到中'
                 let streak=data&&data.sign_streak?data.sign_streak:0
                 if(data&&data.last_sign_date==yesterday){
