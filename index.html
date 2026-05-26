@@ -63,6 +63,9 @@
                     justify-content:center;
                     align-items:center;
                 }
+                #public:target{
+                    display:flex;
+                }
                 .inputplace{
                     width:60%;
                     height:3vh;
@@ -77,6 +80,7 @@
             <div class="menu">
                 <a href="#home">首页</a>
                 <a href="#inform">信息</a>
+                <a href="#public" id="publicpage">公共</a>
                 <a href="#sign" id="signpage">登录</a>
                 <a href="#personal" id="personalpage">个人</a>
             </div>
@@ -148,7 +152,7 @@
                         <div style="font-size:2vw;">2026.5.19:昵称修改功能上线</div>
                         <div style="font-size:2vw;">2026.5.20:签到功能上线</div>
                         <div style="font-size:2vw;">2026.5.21:升级功能、排行榜上线</div>
-                        <div style="font-size:2vw;">2026.5.23:修复签到bug</div>
+                        <div style="font-size:2vw;">2026.5.24:公帖功能上线</div>
                         <div style="font-size:2vw;">此下用于凑数</div>
                         <div style="font-size:2vw;">阿巴阿巴阿巴</div>
                         <div style="font-size:2vw;">阿巴阿巴阿巴</div>
@@ -161,6 +165,11 @@
                     </div>
                 </div>
 
+                <div id="public" class="page" style="background-color:bisque;align-items:center;flex-direction:column">
+                    <div style="font-size:3vw;font-weight:bold;margin-top:2vh;">公帖</div>
+                    <div id="posts_list" style="width:60%;height:60vh;overflow-y:auto;
+                    background-color:rgb(247, 236, 236);border-radius:1vh;padding:1vh;text-align:left;"></div>
+                </div>
             </div>
         
 
@@ -198,6 +207,7 @@
             const levelup_msg=document.getElementById('levelup_msg')
             const level_show=document.getElementById('level_show')
             const rank_list=document.getElementById('rank_list')
+            const posts_list=document.getElementById('posts_list')
 
             personalpage.style.display='none'
             //await supabase.auth.signOut()
@@ -269,6 +279,10 @@
                 remind_msg.style.color='red'
                 remind_msg.textContent=''
 
+                nickname_show.textContent='未设置'
+                point_show.textContent='0'
+                level_show.textContent='1'
+
                 sign_btn.textContent='签到'
                 sign_btn.style.fontSize='2vw'
                 sign_btn.style.opacity='1'
@@ -313,6 +327,29 @@
                 }
             }
 
+            async function load_posts(){
+                const{data}=await supabase.from('posts').select('nickname,text,created_at')
+                .order('created_at',{ascending:false}).limit(50)
+                if(data&&data.length>0){
+                    let html=''
+                    for(let i=0;i<data.length;i++){
+                        const nickname=data[i].nickname||'未设置'
+                        const time=new Date(data[i].created_at).toLocaleString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit'})
+                        html=html+
+                        '<div style="margin-bottom:1vh;border-bottom:1px solid #ccc;padding-bottom:0.5vh;"><span style="font-weight:bold;">'
+                        +nickname+
+                        '</span> <span style="font-size:0.8vw;color:#888;">'
+                        +time+
+                        '</span><br>'
+                        +data[i].text+
+                        '</div>'
+                    }
+                    posts_list.innerHTML=html
+                }else{
+                    posts_list.innerHTML='暂无留言'
+                }
+            }
+            load_posts()
             change_nickname_btn.addEventListener('click',function(){
                 nickname_edit.style.display='block'
                 nickname_input.value=nickname_show.textContent
