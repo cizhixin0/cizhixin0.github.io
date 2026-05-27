@@ -79,8 +79,8 @@
         <body style="margin:0;overflow:hidden;">
             <div class="menu">
                 <a href="#home">首页</a>
-                <a href="#inform">信息</a>
                 <a href="#public" id="publicpage">公共</a>
+                <a href="#inform">信息</a>
                 <a href="#sign" id="signpage">登录</a>
                 <a href="#personal" id="personalpage">个人</a>
             </div>
@@ -153,9 +153,7 @@
                         <div style="font-size:2vw;">2026.5.20:签到功能上线</div>
                         <div style="font-size:2vw;">2026.5.21:升级功能、排行榜上线</div>
                         <div style="font-size:2vw;">2026.5.24:公帖功能上线</div>
-                        <div style="font-size:2vw;">此下用于凑数</div>
-                        <div style="font-size:2vw;">阿巴阿巴阿巴</div>
-                        <div style="font-size:2vw;">阿巴阿巴阿巴</div>
+                        <div style="font-size:2vw;">2026.5.25:点赞功能上线</div>
                     </div>
                     <div class="square" style="position:absolute;left:46vw;top:3vh;width:45vw">
                         <div style="font-size:3vw;">公告</div>
@@ -264,6 +262,7 @@
                     signpage.style.display='none'
                     personalpage.style.display='flex'
                     load_profiles()
+                    load_posts()
                 }
             }
 
@@ -288,6 +287,8 @@
                 sign_btn.style.opacity='1'
                 sign_btn.disabled=false
                 sign_msg.textContent=''
+
+                load_posts()
             }
             logout_btn.addEventListener('click',do_logout)
             login_btn.addEventListener('click',do_login)
@@ -328,13 +329,21 @@
             }
 
             async function load_posts(){
-                const{data}=await supabase.from('posts').select('nickname,text,created_at')
+                const{data}=await supabase.from('posts').select('id,nickname,text,created_at,likes_count')
                 .order('created_at',{ascending:false}).limit(50)
+                const{data:{user}}=await supabase.auth.getUser()
+                let liked_ids=[]
+                if(user){
+                    const{data:likes}=await supabase.from('posts_likes').select('post_id').eq('user_id',user.id).eq('type','like')
+                    if(likes)liked_ids=likes.map(function(item){return item.post_id})
+                }
                 if(data&&data.length>0){
                     let html=''
                     for(let i=0;i<data.length;i++){
                         const nickname=data[i].nickname||'未设置'
                         const time=new Date(data[i].created_at).toLocaleString('zh-CN',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit'})
+                        const liked=liked_ids.includes(data[i].id)
+                        const heart=liked?'❤️':'♡'
                         html=html+
                         '<div style="margin-bottom:1vh;border-bottom:1px solid #ccc;padding-bottom:0.5vh;"><span style="font-weight:bold;">'
                         +nickname+
@@ -342,6 +351,8 @@
                         +time+
                         '</span><br>'
                         +data[i].text+
+                        '<br><button class="like_btn" data-post-id="'+data[i].id+'" style="font-size:0.8vw;margin-top:0.3vh;">'+heart+' <span id="likes_'+data[i].id+'">'
+                        +(data[i].likes_count||0)+'</span></button>'+
                         '</div>'
                     }
                     posts_list.innerHTML=html
@@ -350,6 +361,29 @@
                 }
             }
             load_posts()
+
+            posts_list.addEventListener('click',async function(e){
+                const btn=e.target.closest('.like_btn')
+                if(!btn)return
+                const post_id=parseInt(btn.dataset.postId)
+                const{data:{user}}=await supabase.auth.getUser()
+                if(!user){
+                    alert('请先登录')
+                    return
+                }
+                const{data:existing}=await supabase.from('posts_likes').select('id').eq('post_id',post_id).eq('user_id',user.id).eq('type','like').single()
+                console.log('查询结果:',existing)
+                if(existing)return
+                await supabase.from('posts_likes').insert({post_id:post_id,user_id:user.id,type:'like'})
+                //存储点赞记录
+                const{data:post}=await supabase.from('posts').select('likes_count').eq('id',post_id).single()
+                const new_count=(post.likes_count||0)+1
+                await supabase.from('posts').update({likes_count:new_count}).eq('id',post_id)
+                document.getElementById('likes_'+post_id).textContent=new_count
+                //更新点赞数并显示
+                btn.innerHTML='❤️ <span id="likes_'+post_id+'">'+new_count+'</span>'
+            })
+
             change_nickname_btn.addEventListener('click',function(){
                 nickname_edit.style.display='block'
                 nickname_input.value=nickname_show.textContent
