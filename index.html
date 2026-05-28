@@ -261,6 +261,7 @@
                     window.location.hash='#personal'
                     signpage.style.display='none'
                     personalpage.style.display='flex'
+                    levelup_msg.textContent=''
                     load_profiles()
                     load_posts()
                 }
@@ -287,6 +288,7 @@
                 sign_btn.style.opacity='1'
                 sign_btn.disabled=false
                 sign_msg.textContent=''
+                levelup_msg.textContent=''
 
                 load_posts()
             }
@@ -320,7 +322,13 @@
                     }
                     if(data.level){
                         level_show.textContent=data.level
-                    }else level_show.textContent='1'
+                        levelup_btn.textContent='升级(需'+((Math.floor((data.level-1)/5)+1)*50)+'积分)'
+                        levelup_cost.textContent=((Math.floor((data.level-1)/5)+1)*50)
+                    }else{
+                        level_show.textContent='1'
+                        levelup_btn.textContent='升级(需50积分)'
+                        levelup_cost.textContent='50'
+                    }
                 }else{
                     nickname_show.textContent='未设置'
                     point_show.textContent='0'
@@ -365,15 +373,20 @@
             posts_list.addEventListener('click',async function(e){
                 const btn=e.target.closest('.like_btn')
                 if(!btn)return
+                btn.disabled=true
                 const post_id=parseInt(btn.dataset.postId)
                 const{data:{user}}=await supabase.auth.getUser()
                 if(!user){
                     alert('请先登录')
+                    btn.disabled=false
                     return
                 }
                 const{data:existing}=await supabase.from('posts_likes').select('id').eq('post_id',post_id).eq('user_id',user.id).eq('type','like').single()
                 console.log('查询结果:',existing)
-                if(existing)return
+                if(existing){
+                    btn.disabled=false
+                    return
+                }
                 await supabase.from('posts_likes').insert({post_id:post_id,user_id:user.id,type:'like'})
                 //存储点赞记录
                 const{data:post}=await supabase.from('posts').select('likes_count').eq('id',post_id).single()
