@@ -154,12 +154,14 @@
                         <div style="font-size:2vw;">2026.5.21:升级功能、排行榜上线</div>
                         <div style="font-size:2vw;">2026.5.24:公帖功能上线</div>
                         <div style="font-size:2vw;">2026.5.25:点赞功能上线</div>
+                        <div style="font-size:2vw;">2026.6.1:发帖功能上线</div>
                     </div>
                     <div class="square" style="position:absolute;left:46vw;top:3vh;width:45vw">
                         <div style="font-size:3vw;">公告</div>
                         <div style="font-size:2vw;">2026.5.19:由于辞职信0个人疏忽，所有用户信息重载</div>
                         <div style="font-size:2vw;">2026.5.20:庆祝代码超过260行</div>
                         <div style="font-size:2vw;">2026.5.21:庆祝代码超过330行</div>
+                        <div style="font-size:2vw;">2026.6.1:庆祝代码超过500行</div>
                     </div>
                 </div>
 
@@ -167,6 +169,13 @@
                     <div style="font-size:3vw;font-weight:bold;margin-top:2vh;">公帖</div>
                     <div id="posts_list" style="width:60%;height:60vh;overflow-y:auto;
                     background-color:rgb(247, 236, 236);border-radius:1vh;padding:1vh;text-align:left;"></div>
+                    <div style="width:60%;margin-top:1vh;">
+                        <textarea id="post_content" placeholder="发个帖子..." style="width:100%;height:6vh;font-size:1vw;padding:0.5vh;resize:none;"></textarea>
+                        <button id="post_btn" style="width:100%;height:3.5vh;font-size:1vw;border-radius:0.5vh;margin-top:0.5vh;">
+                            发布(需Lv.5;消耗20积分)
+                        </button>
+                        <div id="post_msg" style="font-size:0.9vw;margin-top:0.5vh;"></div>
+                    </div>
                 </div>
             </div>
         
@@ -206,6 +215,16 @@
             const level_show=document.getElementById('level_show')
             const rank_list=document.getElementById('rank_list')
             const posts_list=document.getElementById('posts_list')
+            const post_content=document.getElementById('post_content')
+            const post_btn=document.getElementById('post_btn')
+            const post_msg=document.getElementById('post_msg')
+
+            function show_msg(el,text,time){
+                el.textContent=text
+                setTimeout(function(){
+                    el.textContent=''
+                },time||4000)
+            }
 
             personalpage.style.display='none'
             //await supabase.auth.signOut()
@@ -253,10 +272,10 @@
                 login_btn.disabled=false
                 login_btn.textContent='登录'
                 if(error){
-                    remind_msg.textContent='登录失败:'+error.message
+                    show_msg(remind_msg,'登录失败:'+error.message)
                 }else{
                     remind_msg.style.color='green'
-                    remind_msg.textContent='登录成功！当前用户：'+data.user.email
+                    show_msg(remind_msg,'登录成功！当前用户：'+data.user.email)
                     document.getElementById('emailname').textContent='当前用户：'+data.user.email
                     window.location.hash='#personal'
                     signpage.style.display='none'
@@ -395,6 +414,37 @@
                 document.getElementById('likes_'+post_id).textContent=new_count
                 //更新点赞数并显示
                 btn.innerHTML='❤️ <span id="likes_'+post_id+'">'+new_count+'</span>'
+                btn.disabled=false
+            })
+
+            post_btn.addEventListener('click',async function(){
+                post_btn.disabled=true
+                const{data:{user}}=await supabase.auth.getUser()
+                if(!user){
+                    post_btn.disabled=false
+                    show_msg(post_msg,'请先登录')
+                    return
+                }
+                const{data:profile}=await supabase.from('profiles').select('nickname,point,level').eq('user_id',user.id).single()
+                const nickname=profile.nickname||'未设置'
+                const point=profile.point||0
+                const level=profile.level||1
+                const content=post_content.value
+                if(level<5||point<20||!content){
+                    post_btn.disabled=false
+                    show_msg(post_msg,'等级不足或积分不够或发布空白 无法发帖')
+                    return
+                }else{
+                    post_btn.textContent='发布中...'
+                    await supabase.from('profiles').update({point:point-20}).eq('user_id',user.id)
+                    point_show.textContent=point-20
+                    await supabase.from('posts').insert({user_id:user.id,nickname:nickname,text:content})
+                    post_content.value=''
+                    load_posts()
+                    show_msg(post_msg,'发布成功')
+                    post_btn.textContent='发布(需Lv.5;消耗20积分)'
+                    post_btn.disabled=false
+                }
             })
 
             change_nickname_btn.addEventListener('click',function(){
@@ -410,14 +460,14 @@
                 sign_btn.disabled=true
                 const{data:{user}}=await supabase.auth.getUser()
                 if(!user){
-                    sign_msg.textContent='请先登录'
+                    show_msg(sign_msg,'请先登录')
                     return
                 }
                 const{data,error}=await supabase.from('profiles').select('last_sign_date,point,sign_streak').eq('user_id',user.id).single()
                 const today=new Date().toISOString().split('T')[0]
                 const yesterday=new Date(Date.now()-24*60*60*1000).toISOString().split('T')[0]
                 if(data&&data.last_sign_date===today){
-                    sign_msg.textContent='今日已签到'
+                    show_msg(sign_msg,'今日已签到')
                     sign_btn.style.fontSize='1vw'
                     sign_btn.style.opacity='0.7'
                     return
@@ -435,7 +485,7 @@
                     sign_streak:streak
                 })
                 sign_msg.style.color='green'
-                sign_msg.textContent='签到成功！积分+'+add_point
+                show_msg(sign_msg,'签到成功！积分+'+add_point)
                 point_show.textContent=data?data.point+add_point:add_point
                 sign_btn.textContent='今日已签到'
                 sign_btn.style.fontSize='1vw'
@@ -470,7 +520,7 @@
                 const cost=(Math.floor((now_level-1)/5)+1)*50
                 if(now_point<cost){
                     levelup_msg.style.color='red'
-                    levelup_msg.textContent='积分不足'
+                    show_msg(levelup_msg,'积分不足')
                     return
                 }
                 levelup_btn.disabled=true
@@ -486,7 +536,7 @@
                 level_show.textContent=new_level
                 levelup_cost.textContent=((Math.floor((new_level-1)/5)+1)*50)
                 levelup_msg.style.color='green'
-                levelup_msg.textContent='升级成功！当前Lv.'+new_level
+                show_msg(levelup_msg,'升级成功！当前Lv.'+new_level)
                 levelup_btn.disabled=false
                 levelup_btn.textContent='升级(需'+((Math.floor((new_level-1)/5)+1)*50)+'积分)'
             })
