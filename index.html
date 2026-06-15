@@ -50,6 +50,7 @@
                 .page:target{
                     display:block;
                 }
+                
                 #home{
                     display:block;
                 }
@@ -66,6 +67,9 @@
                 #public:target{
                     display:flex;
                 }
+                #game:target{
+                    display:flex;
+                }
                 .inputplace{
                     width:60%;
                     height:3vh;
@@ -73,7 +77,6 @@
                     margin-bottom:1vh;
                     padding:0.5vh;
                 }
-                
             </style>
         </head>
         <body style="margin:0;overflow:hidden;">
@@ -81,6 +84,7 @@
                 <a href="#home">首页</a>
                 <a href="#public" id="publicpage">公共</a>
                 <a href="#shop">商店</a>
+                <a href="#game">游戏</a>
                 <a href="#inform">信息</a>
                 <a href="#sign" id="signpage">登录</a>
                 <a href="#personal" id="personalpage">个人</a>
@@ -157,6 +161,7 @@
                         <div style="font-size:2vw;">2026.5.25:点赞功能上线</div>
                         <div style="font-size:2vw;">2026.6.1:发帖功能上线</div>
                         <div style="font-size:2vw;">2026.6.2:商店页面上线</div>
+                        <div style="font-size:2vw;">2026.6.15:游戏页面上线;限制帖子字数</div>
                     </div>
                     <div class="square" style="position:absolute;left:46vw;top:3vh;width:45vw">
                         <div style="font-size:3vw;">公告</div>
@@ -164,6 +169,7 @@
                         <div style="font-size:2vw;">2026.5.20:庆祝代码超过260行</div>
                         <div style="font-size:2vw;">2026.5.21:庆祝代码超过330行</div>
                         <div style="font-size:2vw;">2026.6.1:庆祝代码超过500行</div>
+                        <div style="font-size:2vw;">2026.6.15:游戏预告:这将是一个弱智游戏,躲避类型的</div>
                     </div>
                 </div>
 
@@ -186,6 +192,12 @@
                         <div style="font-size:3vw;margin-top:2vh;">商店</div>
                         <div style="font-size:1.5vw;color:gray;margin-top:2vh;">敬请期待</div>
                     </div>
+                </div>
+
+                <div id="game" class="page" style="background-color:bisque;justify-content:center;align-items:center;">
+                    <canvas id="game_canvas_1" width=600 height=400 style="border:1px;border-radius:5px;background-color:rgb(18, 245, 222);">
+
+                    </canvas>
                 </div>
             </div>
         
@@ -228,7 +240,12 @@
             const post_content=document.getElementById('post_content')
             const post_btn=document.getElementById('post_btn')
             const post_msg=document.getElementById('post_msg')
+            const game_canvas_1=document.getElementById('game_canvas_1')
 
+            if(game_canvas_1){
+                game_canvas_1.width=game_canvas_1.parentElement.parentElement.clientWidth*0.97
+                game_canvas_1.height=game_canvas_1.parentElement.parentElement.clientHeight*0.97
+            }
             function show_msg(el,text,time){
                 el.textContent=text
                 setTimeout(function(){
@@ -440,9 +457,15 @@
                 const point=profile.point||0
                 const level=profile.level||1
                 const content=post_content.value
+                const max_length=level*20
+                
                 if(level<5||point<20||!content){
                     post_btn.disabled=false
                     show_msg(post_msg,'等级不足或积分不够或发布空白 无法发帖')
+                    return
+                }else if(content.length>max_length){
+                    post_btn.disabled=false
+                    show_msg(post_msg,'字数超出限制 当前Lv.'+level+'最多发'+max_length+'字')
                     return
                 }else{
                     post_btn.textContent='发布中...'
