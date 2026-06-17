@@ -245,6 +245,31 @@
             if(game_canvas_1){
                 game_canvas_1.width=game_canvas_1.parentElement.parentElement.clientWidth*0.97
                 game_canvas_1.height=game_canvas_1.parentElement.parentElement.clientHeight*0.97
+                const ctx=game_canvas_1.getContext('2d')
+                const utx=game_canvas_1.width*0.001
+                const uty=game_canvas_1.height*0.001
+                function printtext(size,color,x,y,contest){
+                    ctx.fillStyle=color
+                    ctx.font=size*utx+'px sans-serif'
+                    ctx.textAlign='center'
+                    ctx.textBaseline='middle'
+                    ctx.fillText(contest,x*utx,y*uty)
+                }
+                function printrect(color,x,y,w,h){
+                    ctx.fillStyle=color
+                    ctx.fillRect((x-w/2)*utx,(y-h/2)*uty,w*utx,h*uty)
+                }
+                printtext(30,'black',500,100,'不知道叫什么的游戏')
+                printrect('white',500,700,120,80)
+                printtext(20,'red',500,700,'开始游戏')
+                game_canvas_1.addEventListener('click',function(e){
+                    const rect=game_canvas_1.getBoundingClientRect()
+                    const x=(e.clientX-rect.left)/utx
+                    const y=(e.clientY-rect.top)/uty
+                    if(x>410&&x<590&&y>660&&y<740){
+                        alert('游戏还在开发中哦！敬请期待！')
+                    }
+                })
             }
             function show_msg(el,text,time){
                 el.textContent=text
