@@ -307,14 +307,16 @@
                     const rect=game_canvas_1.getBoundingClientRect()
                     const x=(e.clientX-rect.left)/utx
                     const y=(e.clientY-rect.top)/uty
-                    const dist=Math.sqrt((x-100)*(x-100)+(y-850)*(y-850))
-                    if(dist<50){
+                    const dx=(x-100)*utx
+                    const dy=(y-850)*utx
+                    const dist=Math.sqrt(dx*dx+dy*dy)
+                    if(dist<50*utx){
                         joystick_active=true
                         joy_stick_x=x
                         joy_stick_y=y
                     }
                 })
-                game_canvas_1.addEventListener('pointermove',function(e){
+                function stick_move_listen(e){
                     if(!joystick_active)return
                     const rect=game_canvas_1.getBoundingClientRect()
                     const x=(e.clientX-rect.left)/utx
@@ -329,7 +331,10 @@
                         joy_stick_x=100+dx/dist*50
                         joy_stick_y=850+dy/dist*50*(utx/uty)
                     }
-                })
+                }
+                game_canvas_1.addEventListener('touchmove',stick_move_listen,{passive:false})
+                //game_canvas_1.addEventListener('pointermove',stick_move_listen)
+
                 game_canvas_1.addEventListener('pointerup',function(){
                     joystick_active=false
                     joy_stick_x=100
