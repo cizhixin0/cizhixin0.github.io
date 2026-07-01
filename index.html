@@ -332,8 +332,8 @@
                         joy_stick_y=850+dy/dist*50*(utx/uty)
                     }
                 }
-                game_canvas_1.addEventListener('touchmove',stick_move_listen,{passive:false})
-                //game_canvas_1.addEventListener('pointermove',stick_move_listen)
+                //game_canvas_1.addEventListener('touchmove',stick_move_listen,{passive:false})
+                game_canvas_1.addEventListener('pointermove',stick_move_listen)
 
                 game_canvas_1.addEventListener('pointerup',function(){
                     joystick_active=false
