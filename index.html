@@ -163,6 +163,7 @@
                         <div style="font-size:2vw;">2026.6.2:商店页面上线</div>
                         <div style="font-size:2vw;">2026.6.15:游戏页面上线;限制帖子字数</div>
                         <div style="font-size:2vw;">2026.7.1:游戏移动功能上线</div>
+                        <div style="font-size:2vw;">2026.9.10:游戏重做</div>
                     </div>
                     <div class="square" style="position:absolute;left:46vw;top:3vh;width:45vw">
                         <div style="font-size:3vw;">公告</div>
@@ -245,141 +246,90 @@
             const game_canvas_1=document.getElementById('game_canvas_1')
 
             if(game_canvas_1){
-                game_canvas_1.width=game_canvas_1.parentElement.parentElement.clientWidth*0.97
-                game_canvas_1.height=game_canvas_1.parentElement.parentElement.clientHeight*0.97
+                game_canvas_1.width=game_canvas_1.parentElement.parentElement.clientWidth
+                game_canvas_1.height=game_canvas_1.parentElement.parentElement.clientHeight
                 const ctx=game_canvas_1.getContext('2d')
                 const utx=game_canvas_1.width*0.001
                 const uty=game_canvas_1.height*0.001
-                let game_state='start'
-                function printtext(size,color,x,y,contest){
-                    ctx.fillStyle=color
-                    ctx.font=size*utx+'px sans-serif'
+                
+                const start_btn_rect = {
+                    x: game_canvas_1.width * 0.4,
+                    y: game_canvas_1.height * 0.4,
+                    w: game_canvas_1.width * 0.2,
+                    h: game_canvas_1.height * 0.2
+                }
+                function draw_start_button(){
+                    ctx.clearRect(0,0,game_canvas_1.width,game_canvas_1.height)
+                    ctx.fillStyle='black'
+                    ctx.fillRect(start_btn_rect.x, start_btn_rect.y, start_btn_rect.w, start_btn_rect.h)
+                    ctx.fillStyle='white'
+                    ctx.font='30px sans-serif'
                     ctx.textAlign='center'
                     ctx.textBaseline='middle'
-                    ctx.fillText(contest,x*utx,y*uty)
+                    ctx.fillText('开始游戏', start_btn_rect.x + start_btn_rect.w / 2, start_btn_rect.y + start_btn_rect.h / 2)
                 }
-                function printrect(color,x,y,w,h){
-                    ctx.fillStyle=color
-                    ctx.fillRect((x-w/2)*utx,(y-h/2)*uty,w*utx,h*uty)
-                }
-                function printcircle(color,x,y,r){
-                    ctx.fillStyle=color
-                    ctx.beginPath()
-                    ctx.arc(x*utx,y*uty,r*utx,0,Math.PI*2)
-                    ctx.fill()
-                }
+                draw_start_button()
+                let if_game_started=false
 
-                function draw_start(){
+                function start_game(){
                     ctx.clearRect(0,0,game_canvas_1.width,game_canvas_1.height)
-                    printtext(30,'black',500,100,'不知道叫什么的游戏')
-                    printrect('white',500,700,120,80)
-                    printtext(20,'red',500,700,'开始游戏')
+                    ctx.fillStyle='black'
+                    ctx.font='30px sans-serif'
+                    ctx.textAlign='center' 
+                    ctx.fillText('游戏开始！', game_canvas_1.width / 2, game_canvas_1.height / 2);
+                    const menu_links=document.querySelectorAll('.menu a')
+                    //禁用菜单栏
+                    menu_links.forEach(function(link){
+                        link.style.pointerEvents='none'
+                        link.style.opacity='0.5'
+                    })
+                    draw_exit_button()
                 }
-                
-
-                game_canvas_1.addEventListener('click',function(e){
-                    const rect=game_canvas_1.getBoundingClientRect()
-                    const x=(e.clientX-rect.left)/utx
-                    const y=(e.clientY-rect.top)/uty
-                    if(x>410&&x<590&&y>660&&y<740){
-                        //alert('游戏还在开发中哦！敬请期待！')
-                        game_state='playing'
+                //开始按钮点击事件
+                document.addEventListener('click', function(e){
+                    if(if_game_started)return
+                    const rect = game_canvas_1.getBoundingClientRect()
+                    const clickX = e.clientX - rect.left
+                    const clickY = e.clientY - rect.top
+                    if(clickX >= start_btn_rect.x && clickX <= start_btn_rect.x + start_btn_rect.w &&
+                       clickY >= start_btn_rect.y && clickY <= start_btn_rect.y + start_btn_rect.h){
+                        if_game_started=true
+                        start_game()
                     }
                 })
-
-                let player_x=500
-                let player_y=500
-               
-                const key={}
-                document.addEventListener('keydown',function(e){
-                    key[e.key]=true
-                })
-                document.addEventListener('keyup',function(e){
-                    key[e.key]=false
-                })
-
-                //摇杆 
-                let joy_stick_x=100
-                let joy_stick_y=850
-                let joystick_active=false
-
-                game_canvas_1.addEventListener('pointerdown',function(e){
-                    const rect=game_canvas_1.getBoundingClientRect()
-                    const x=(e.clientX-rect.left)/utx
-                    const y=(e.clientY-rect.top)/uty
-                    const dx=(x-100)*utx
-                    const dy=(y-850)*utx
-                    const dist=Math.sqrt(dx*dx+dy*dy)
-                    if(dist<50*utx){
-                        joystick_active=true
-                        joy_stick_x=x
-                        joy_stick_y=y
+                const exit_btn_rect = {
+                    x: game_canvas_1.width * 0,
+                    y: game_canvas_1.height * 0,
+                    w: game_canvas_1.width * 0.08,
+                    h: game_canvas_1.height * 0.05
+                }
+                function draw_exit_button(){
+                    ctx.fillStyle='black'
+                    ctx.fillRect(exit_btn_rect.x, exit_btn_rect.y, exit_btn_rect.w, exit_btn_rect.h)
+                    ctx.fillStyle='white'
+                    ctx.font='15px sans-serif'
+                    ctx.textAlign='center'
+                    ctx.textBaseline='middle'
+                    ctx.fillText('退出游戏', exit_btn_rect.x + exit_btn_rect.w / 2, exit_btn_rect.y + exit_btn_rect.h / 2)
+                }
+                //退出游戏按钮点击事件
+                document.addEventListener('click', function(e){
+                    if(!if_game_started)return
+                    const rect = game_canvas_1.getBoundingClientRect()
+                    const clickX = e.clientX - rect.left
+                    const clickY = e.clientY - rect.top
+                    if(clickX >= exit_btn_rect.x && clickX <= exit_btn_rect.x + exit_btn_rect.w &&
+                       clickY >= exit_btn_rect.y && clickY <= exit_btn_rect.y + exit_btn_rect.h){
+                        if_game_started=false
+                        draw_start_button()
+                        //恢复菜单栏
+                        const menu_links=document.querySelectorAll('.menu a')
+                        menu_links.forEach(function(link){
+                            link.style.pointerEvents='auto'
+                            link.style.opacity='1'
+                        })
                     }
                 })
-                function stick_move_listen(e){
-                    if(!joystick_active)return
-                    const rect=game_canvas_1.getBoundingClientRect()
-                    const x=(e.clientX-rect.left)/utx
-                    const y=(e.clientY-rect.top)/uty
-                    const dx=(x-100)*utx
-                    const dy=(y-850)*utx
-                    const dist=Math.sqrt(dx*dx+dy*dy)
-                    if(dist<50*utx){
-                        joy_stick_x=x
-                        joy_stick_y=y
-                    }else{
-                        joy_stick_x=100+dx/dist*50
-                        joy_stick_y=850+dy/dist*50*(utx/uty)
-                    }
-                }
-                //game_canvas_1.addEventListener('touchmove',stick_move_listen,{passive:false})
-                game_canvas_1.addEventListener('pointermove',stick_move_listen)
-
-                game_canvas_1.addEventListener('pointerup',function(){
-                    joystick_active=false
-                    joy_stick_x=100
-                    joy_stick_y=850
-                })
-
-                function draw_joystick(){
-                    printcircle('gray',100,850,50)
-                    printcircle('#666666',joy_stick_x,joy_stick_y,18)
-                } 
-
-                function player_move(){
-                    if(joystick_active){
-                        const j_dx=joy_stick_x-100
-                        const j_dy=joy_stick_y-850
-                        key['ArrowLeft']=j_dx<-15
-                        key['ArrowRight']=j_dx>15
-                        key['ArrowUp']=j_dy<-15
-                        key['ArrowDown']=j_dy>15
-                    }
-                    if(key['ArrowUp']||key['w'])player_y-=3
-                    if(key['ArrowDown']||key['s'])player_y+=3
-                    if(key['ArrowLeft']||key['a'])player_x-=3
-                    if(key['ArrowRight']||key['d'])player_x+=3
-                    player_x=Math.max(25,Math.min(975,player_x))
-                    player_y=Math.max(25,Math.min(975,player_y))
-                }
-
-
-                function draw_game(){
-                    ctx.clearRect(0,0,game_canvas_1.width,game_canvas_1.height)
-                    player_move()
-                    printrect('blue',player_x,player_y,50,50)
-                    draw_joystick()
-                }
-
-                function game_loop(){
-                    if(game_state==='start'){
-                        draw_start()
-                    }else if(game_state==='playing'){
-                        draw_game()
-                    }
-                    requestAnimationFrame(game_loop)
-                }
-                game_loop()
             }
             function show_msg(el,text,time){
                 el.textContent=text
