@@ -164,6 +164,7 @@
                         <div style="font-size:2vw;">2026.6.15:游戏页面上线;限制帖子字数</div>
                         <div style="font-size:2vw;">2026.7.1:游戏移动功能上线</div>
                         <div style="font-size:2vw;">2026.9.10:游戏重做</div>
+                        <div style="font-size:2vw;">2026.9.13:添加游戏属性面板</div>
                     </div>
                     <div class="square" style="position:absolute;left:46vw;top:3vh;width:45vw">
                         <div style="font-size:3vw;">公告</div>
@@ -171,8 +172,8 @@
                         <div style="font-size:2vw;">2026.5.20:庆祝代码超过260行</div>
                         <div style="font-size:2vw;">2026.5.21:庆祝代码超过330行</div>
                         <div style="font-size:2vw;">2026.6.1:庆祝代码超过500行</div>
-                        <div style="font-size:2vw;">2026.6.15:游戏预告:这将是一个弱智游戏,躲避类型的</div>
                         <div style="font-size:2vw;">2026.7.1:庆祝代码超过700行</div>
+                        <div style="font-size:2vw;">2026.9.13:庆祝代码重新超过700行</div>
                     </div>
                 </div>
 
@@ -252,11 +253,38 @@
                 const utx=game_canvas_1.width*0.001
                 const uty=game_canvas_1.height*0.001
                 
+                let if_game_started=false
+                let if_show_attr_panel=false
+
                 const start_btn_rect = {
                     x: game_canvas_1.width * 0.4,
                     y: game_canvas_1.height * 0.4,
                     w: game_canvas_1.width * 0.2,
                     h: game_canvas_1.height * 0.2
+                }
+                const exit_btn_rect = {
+                    x: game_canvas_1.width * 0,
+                    y: game_canvas_1.height * 0,
+                    w: game_canvas_1.width * 0.08,
+                    h: game_canvas_1.height * 0.05
+                }
+                const attr_btn_rect = {
+                    x: game_canvas_1.width * 0.10,
+                    y: game_canvas_1.height * 0,
+                    w: game_canvas_1.width * 0.08,
+                    h: game_canvas_1.height * 0.05
+                }
+                const close_attr_btn_rect = {
+                    x: game_canvas_1.width * 0.85,
+                    y: game_canvas_1.height * 0.1,
+                    w: game_canvas_1.width * 0.05,
+                    h: game_canvas_1.height * 0.05
+                }
+                const attr_panel_rect = {
+                    x: game_canvas_1.width * 0.1,
+                    y: game_canvas_1.height * 0.1,
+                    w: game_canvas_1.width * 0.8,
+                    h: game_canvas_1.height * 0.8
                 }
                 function draw_start_button(){
                     ctx.clearRect(0,0,game_canvas_1.width,game_canvas_1.height)
@@ -268,23 +296,46 @@
                     ctx.textBaseline='middle'
                     ctx.fillText('开始游戏', start_btn_rect.x + start_btn_rect.w / 2, start_btn_rect.y + start_btn_rect.h / 2)
                 }
-                draw_start_button()
-                let if_game_started=false
-
-                function start_game(){
-                    ctx.clearRect(0,0,game_canvas_1.width,game_canvas_1.height)
+                function draw_exit_button(){
                     ctx.fillStyle='black'
-                    ctx.font='30px sans-serif'
-                    ctx.textAlign='center' 
-                    ctx.fillText('游戏开始！', game_canvas_1.width / 2, game_canvas_1.height / 2);
-                    const menu_links=document.querySelectorAll('.menu a')
-                    //禁用菜单栏
-                    menu_links.forEach(function(link){
-                        link.style.pointerEvents='none'
-                        link.style.opacity='0.5'
-                    })
-                    draw_exit_button()
+                    ctx.fillRect(exit_btn_rect.x, exit_btn_rect.y, exit_btn_rect.w, exit_btn_rect.h)
+                    ctx.fillStyle='white'
+                    ctx.font='15px sans-serif'
+                    ctx.textAlign='center'
+                    ctx.textBaseline='middle'
+                    ctx.fillText('退出游戏', exit_btn_rect.x + exit_btn_rect.w / 2, exit_btn_rect.y + exit_btn_rect.h / 2)
                 }
+                function draw_attr_button(){
+                    ctx.fillStyle='black'
+                    ctx.fillRect(attr_btn_rect.x, attr_btn_rect.y, attr_btn_rect.w, attr_btn_rect.h)
+                    ctx.fillStyle='white'
+                    ctx.font='15px sans-serif'
+                    ctx.textAlign='center'
+                    ctx.textBaseline='middle'
+                    ctx.fillText('属性', attr_btn_rect.x + attr_btn_rect.w / 2, attr_btn_rect.y + attr_btn_rect.h / 2)
+                }
+                function draw_close_attr_button(){
+                    ctx.fillStyle='black'
+                    ctx.fillRect(close_attr_btn_rect.x, close_attr_btn_rect.y, close_attr_btn_rect.w, close_attr_btn_rect.h)
+                    ctx.fillStyle='white'
+                    ctx.font='15px sans-serif'
+                    ctx.textAlign='center'
+                    ctx.textBaseline='middle'
+                    ctx.fillText('关闭', close_attr_btn_rect.x + close_attr_btn_rect.w / 2, close_attr_btn_rect.y + close_attr_btn_rect.h / 2)
+                }
+
+                function draw_attr_panel(){
+                    if(!if_show_attr_panel){
+                        ctx.clearRect(attr_panel_rect.x, attr_panel_rect.y, attr_panel_rect.w, attr_panel_rect.h)
+                        return
+                    }
+                    ctx.fillStyle='grey'
+                    ctx.fillRect(attr_panel_rect.x, attr_panel_rect.y, attr_panel_rect.w, attr_panel_rect.h)
+                    draw_close_attr_button()
+                }
+
+                draw_start_button()
+                
                 //开始按钮点击事件
                 document.addEventListener('click', function(e){
                     if(if_game_started)return
@@ -297,21 +348,6 @@
                         start_game()
                     }
                 })
-                const exit_btn_rect = {
-                    x: game_canvas_1.width * 0,
-                    y: game_canvas_1.height * 0,
-                    w: game_canvas_1.width * 0.08,
-                    h: game_canvas_1.height * 0.05
-                }
-                function draw_exit_button(){
-                    ctx.fillStyle='black'
-                    ctx.fillRect(exit_btn_rect.x, exit_btn_rect.y, exit_btn_rect.w, exit_btn_rect.h)
-                    ctx.fillStyle='white'
-                    ctx.font='15px sans-serif'
-                    ctx.textAlign='center'
-                    ctx.textBaseline='middle'
-                    ctx.fillText('退出游戏', exit_btn_rect.x + exit_btn_rect.w / 2, exit_btn_rect.y + exit_btn_rect.h / 2)
-                }
                 //退出游戏按钮点击事件
                 document.addEventListener('click', function(e){
                     if(!if_game_started)return
@@ -330,6 +366,46 @@
                         })
                     }
                 })
+                //属性按钮点击事件
+                document.addEventListener('click', function(e){
+                    if(!if_game_started)return
+                    const rect = game_canvas_1.getBoundingClientRect()
+                    const clickX = e.clientX - rect.left
+                    const clickY = e.clientY - rect.top
+                    if(clickX >= attr_btn_rect.x && clickX <= attr_btn_rect.x + attr_btn_rect.w &&
+                       clickY >= attr_btn_rect.y && clickY <= attr_btn_rect.y + attr_btn_rect.h){
+                        if_show_attr_panel=true
+                        draw_attr_panel()
+                    }
+                })
+                //关闭属性面板按钮点击事件
+                document.addEventListener('click', function(e){
+                    if(!if_show_attr_panel)return
+                    const rect = game_canvas_1.getBoundingClientRect()
+                    const clickX = e.clientX - rect.left
+                    const clickY = e.clientY - rect.top
+                    if(clickX >= close_attr_btn_rect.x && clickX <= close_attr_btn_rect.x + close_attr_btn_rect.w &&
+                       clickY >= close_attr_btn_rect.y && clickY <= close_attr_btn_rect.y + close_attr_btn_rect.h){
+                        if_show_attr_panel=false
+                        draw_start_game()
+                    }
+                })
+
+                function draw_start_game(){
+                    ctx.clearRect(0,0,game_canvas_1.width,game_canvas_1.height)
+                    draw_exit_button()
+                    draw_attr_button()
+                }
+
+                function start_game(){
+                    const menu_links=document.querySelectorAll('.menu a')
+                    //禁用菜单栏
+                    menu_links.forEach(function(link){
+                        link.style.pointerEvents='none'
+                        link.style.opacity='0.5'
+                    })
+                    draw_start_game()
+                }
             }
             function show_msg(el,text,time){
                 el.textContent=text
