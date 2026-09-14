@@ -83,8 +83,8 @@
             <div class="menu">
                 <a href="#home">首页</a>
                 <a href="#public" id="publicpage">公共</a>
-                <a href="#shop">商店</a>
-                <a href="#game">游戏</a>
+                <a href="#shop" id="shoppage">商店</a>
+                <a href="#game" id="gamepage">游戏</a>
                 <a href="#inform">信息</a>
                 <a href="#sign" id="signpage">登录</a>
                 <a href="#personal" id="personalpage">个人</a>
@@ -245,6 +245,8 @@
             const post_btn=document.getElementById('post_btn')
             const post_msg=document.getElementById('post_msg')
             const game_canvas_1=document.getElementById('game_canvas_1')
+            const shoppage=document.getElementById('shoppage')
+            const gamepage=document.getElementById('gamepage')
 
             if(game_canvas_1){
                 game_canvas_1.width=game_canvas_1.parentElement.parentElement.clientWidth
@@ -415,6 +417,8 @@
             }
 
             personalpage.style.display='none'
+            shoppage.style.display='none'
+            gamepage.style.display='none'
             //await supabase.auth.signOut()
             async function load_rank(){
                 const result=await supabase.from('profiles').select('nickname,level').order('level',{ascending:false})
@@ -436,11 +440,15 @@
                 if(data.session){
                     signpage.style.display='none'
                     personalpage.style.display='flex'
+                    shoppage.style.display='flex'
+                    gamepage.style.display='flex'
                     document.getElementById('emailname').textContent='当前用户：'+data.session.user.email
                     load_profiles()
                 }else{
                     signpage.style.display='flex'
                     personalpage.style.display='none'
+                    shoppage.style.display='none'
+                    gamepage.style.display='none'
                 }
             }
             check_login()
@@ -468,6 +476,8 @@
                     window.location.hash='#personal'
                     signpage.style.display='none'
                     personalpage.style.display='flex'
+                    shoppage.style.display='flex'
+                    gamepage.style.display='flex'
                     levelup_msg.textContent=''
                     load_profiles()
                     load_posts()
@@ -482,6 +492,8 @@
                 logout_btn.textContent='登出'
                 signpage.style.display='flex'
                 personalpage.style.display='none'
+                shoppage.style.display='none'
+                gamepage.style.display='none'
                 window.location.hash='#sign'
                 remind_msg.style.color='red'
                 remind_msg.textContent=''
