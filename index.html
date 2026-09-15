@@ -257,6 +257,7 @@
                 
                 let if_game_started=false
                 let if_show_attr_panel=false
+                let ke_coin=0
 
                 const start_btn_rect = {
                     x: game_canvas_1.width * 0.4,
@@ -287,6 +288,12 @@
                     y: game_canvas_1.height * 0.1,
                     w: game_canvas_1.width * 0.8,
                     h: game_canvas_1.height * 0.8
+                }
+                const ke_coin_rect = {
+                    x: game_canvas_1.width * 0.20,
+                    y: game_canvas_1.height * 0.0,
+                    w: game_canvas_1.width * 0.1,
+                    h: game_canvas_1.height * 0.05
                 }
                 function draw_start_button(){
                     ctx.clearRect(0,0,game_canvas_1.width,game_canvas_1.height)
@@ -325,7 +332,15 @@
                     ctx.textBaseline='middle'
                     ctx.fillText('关闭', close_attr_btn_rect.x + close_attr_btn_rect.w / 2, close_attr_btn_rect.y + close_attr_btn_rect.h / 2)
                 }
-
+                function draw_ke_coin(){
+                    ctx.fillStyle='black'
+                    ctx.fillRect(ke_coin_rect.x, ke_coin_rect.y, ke_coin_rect.w, ke_coin_rect.h)
+                    ctx.fillStyle='green'
+                    ctx.font='15px sans-serif'
+                    ctx.textAlign='center'
+                    ctx.textBaseline='middle'
+                    ctx.fillText('科币:'+ke_coin, ke_coin_rect.x + ke_coin_rect.w / 2, ke_coin_rect.y + ke_coin_rect.h / 2)
+                }
                 function draw_attr_panel(){
                     if(!if_show_attr_panel){
                         ctx.clearRect(attr_panel_rect.x, attr_panel_rect.y, attr_panel_rect.w, attr_panel_rect.h)
@@ -338,6 +353,13 @@
 
                 draw_start_button()
                 
+                async function load_game_data(){
+                    const{data:{user}}=await supabase.auth.getUser()
+                    if(!user)return
+                    const{data} = await supabase.from('game').select('ke_coin').eq('user_id',user.id).maybeSingle()
+                    if(data)ke_coin=data.ke_coin
+                }
+
                 //开始按钮点击事件
                 document.addEventListener('click', function(e){
                     if(if_game_started)return
@@ -397,18 +419,22 @@
                     ctx.clearRect(0,0,game_canvas_1.width,game_canvas_1.height)
                     draw_exit_button()
                     draw_attr_button()
+                    draw_ke_coin()
                 }
 
-                function start_game(){
+                async function start_game(){
                     const menu_links=document.querySelectorAll('.menu a')
                     //禁用菜单栏
                     menu_links.forEach(function(link){
                         link.style.pointerEvents='none'
                         link.style.opacity='0.5'
                     })
+                    await load_game_data()
                     draw_start_game()
                 }
             }
+
+            
             function show_msg(el,text,time){
                 el.textContent=text
                 setTimeout(function(){
