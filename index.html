@@ -257,6 +257,7 @@
                 
                 let if_game_started=false
                 let if_show_attr_panel=false
+                let if_show_shop_panel=false
                 let ke_coin=0
 
                 const start_btn_rect = {
@@ -277,7 +278,19 @@
                     w: game_canvas_1.width * 0.08,
                     h: game_canvas_1.height * 0.05
                 }
+                const shop_btn_rect = {
+                    x: game_canvas_1.width * 0.20,
+                    y: game_canvas_1.height * 0,
+                    w: game_canvas_1.width * 0.08,
+                    h: game_canvas_1.height * 0.05
+                }
                 const close_attr_btn_rect = {
+                    x: game_canvas_1.width * 0.85,
+                    y: game_canvas_1.height * 0.1,
+                    w: game_canvas_1.width * 0.05,
+                    h: game_canvas_1.height * 0.05
+                }
+                const close_shop_btn_rect = {
                     x: game_canvas_1.width * 0.85,
                     y: game_canvas_1.height * 0.1,
                     w: game_canvas_1.width * 0.05,
@@ -289,8 +302,14 @@
                     w: game_canvas_1.width * 0.8,
                     h: game_canvas_1.height * 0.8
                 }
+                const shop_panel_rect = {
+                    x: game_canvas_1.width * 0.1,
+                    y: game_canvas_1.height * 0.1,
+                    w: game_canvas_1.width * 0.8,
+                    h: game_canvas_1.height * 0.8
+                }
                 const ke_coin_rect = {
-                    x: game_canvas_1.width * 0.20,
+                    x: game_canvas_1.width * 0.30,
                     y: game_canvas_1.height * 0.0,
                     w: game_canvas_1.width * 0.1,
                     h: game_canvas_1.height * 0.05
@@ -323,6 +342,15 @@
                     ctx.textBaseline='middle'
                     ctx.fillText('属性', attr_btn_rect.x + attr_btn_rect.w / 2, attr_btn_rect.y + attr_btn_rect.h / 2)
                 }
+                function draw_shop_button(){
+                    ctx.fillStyle='black'
+                    ctx.fillRect(shop_btn_rect.x, shop_btn_rect.y, shop_btn_rect.w, shop_btn_rect.h)
+                    ctx.fillStyle='white'
+                    ctx.font='15px sans-serif'
+                    ctx.textAlign='center'
+                    ctx.textBaseline='middle'
+                    ctx.fillText('商店', shop_btn_rect.x + shop_btn_rect.w / 2, shop_btn_rect.y + shop_btn_rect.h / 2)
+                }
                 function draw_close_attr_button(){
                     ctx.fillStyle='black'
                     ctx.fillRect(close_attr_btn_rect.x, close_attr_btn_rect.y, close_attr_btn_rect.w, close_attr_btn_rect.h)
@@ -331,6 +359,15 @@
                     ctx.textAlign='center'
                     ctx.textBaseline='middle'
                     ctx.fillText('关闭', close_attr_btn_rect.x + close_attr_btn_rect.w / 2, close_attr_btn_rect.y + close_attr_btn_rect.h / 2)
+                }
+                function draw_close_shop_button(){
+                    ctx.fillStyle='black'
+                    ctx.fillRect(close_shop_btn_rect.x, close_shop_btn_rect.y, close_shop_btn_rect.w, close_shop_btn_rect.h)
+                    ctx.fillStyle='white'
+                    ctx.font='15px sans-serif'
+                    ctx.textAlign='center'
+                    ctx.textBaseline='middle'
+                    ctx.fillText('关闭', close_shop_btn_rect.x + close_shop_btn_rect.w / 2, close_shop_btn_rect.y + close_shop_btn_rect.h / 2)
                 }
                 function draw_ke_coin(){
                     ctx.fillStyle='black'
@@ -349,6 +386,11 @@
                     ctx.fillStyle='grey'
                     ctx.fillRect(attr_panel_rect.x, attr_panel_rect.y, attr_panel_rect.w, attr_panel_rect.h)
                     draw_close_attr_button()
+                }
+                function draw_shop_panel(){
+                    ctx.fillStyle='grey'
+                    ctx.fillRect(shop_panel_rect.x, shop_panel_rect.y, shop_panel_rect.w, shop_panel_rect.h)
+                    draw_close_shop_button()
                 }
 
                 draw_start_button()
@@ -392,7 +434,7 @@
                 })
                 //属性按钮点击事件
                 document.addEventListener('click', function(e){
-                    if(!if_game_started)return
+                    if(!if_game_started || if_show_shop_panel || if_show_attr_panel)return
                     const rect = game_canvas_1.getBoundingClientRect()
                     const clickX = e.clientX - rect.left
                     const clickY = e.clientY - rect.top
@@ -402,7 +444,19 @@
                         draw_attr_panel()
                     }
                 })
-                //关闭属性面板按钮点击事件
+                //商店按钮点击事件
+                 document.addEventListener('click', function(e){
+                    if(!if_game_started || if_show_attr_panel || if_show_shop_panel)return
+                    const rect = game_canvas_1.getBoundingClientRect()
+                    const clickX = e.clientX - rect.left
+                    const clickY = e.clientY - rect.top
+                    if(clickX >= shop_btn_rect.x && clickX <= shop_btn_rect.x + shop_btn_rect.w &&
+                       clickY >= shop_btn_rect.y && clickY <= shop_btn_rect.y + shop_btn_rect.h){
+                        if_show_shop_panel=true
+                        draw_shop_panel()
+                    }
+                })
+                //关闭面板按钮点击事件
                 document.addEventListener('click', function(e){
                     if(!if_show_attr_panel)return
                     const rect = game_canvas_1.getBoundingClientRect()
@@ -414,11 +468,23 @@
                         draw_start_game()
                     }
                 })
+                document.addEventListener('click', function(e){
+                    if(!if_show_shop_panel)return
+                    const rect = game_canvas_1.getBoundingClientRect()
+                    const clickX = e.clientX - rect.left
+                    const clickY = e.clientY - rect.top
+                    if(clickX >= close_shop_btn_rect.x && clickX <= close_shop_btn_rect.x + close_shop_btn_rect.w &&
+                       clickY >= close_shop_btn_rect.y && clickY <= close_shop_btn_rect.y + close_shop_btn_rect.h){
+                        if_show_shop_panel=false
+                        draw_start_game()
+                    }
+                })
 
                 function draw_start_game(){
                     ctx.clearRect(0,0,game_canvas_1.width,game_canvas_1.height)
                     draw_exit_button()
                     draw_attr_button()
+                    draw_shop_button()
                     draw_ke_coin()
                 }
 
@@ -429,6 +495,10 @@
                         link.style.pointerEvents='none'
                         link.style.opacity='0.5'
                     })
+                    if_game_started=true
+                    if_show_attr_panel=false
+                    if_show_shop_panel=false
+                    ke_coin=0
                     await load_game_data()
                     draw_start_game()
                 }
