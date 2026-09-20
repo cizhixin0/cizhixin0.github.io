@@ -165,6 +165,7 @@
                         <div style="font-size:2vw;">2026.7.1:游戏移动功能上线</div>
                         <div style="font-size:2vw;">2026.9.10:游戏重做</div>
                         <div style="font-size:2vw;">2026.9.13:添加游戏属性面板</div>
+                        <div style="font-size:2vw;">2026.9.20:添加商店面板及货币积分兑换</div>
                     </div>
                     <div class="square" style="position:absolute;left:46vw;top:3vh;width:45vw">
                         <div style="font-size:3vw;">公告</div>
@@ -174,6 +175,7 @@
                         <div style="font-size:2vw;">2026.6.1:庆祝代码超过500行</div>
                         <div style="font-size:2vw;">2026.7.1:庆祝代码超过700行</div>
                         <div style="font-size:2vw;">2026.9.13:庆祝代码重新超过700行</div>
+                        <div style="font-size:2vw;">2026.9.20:庆祝代码超过900行</div>
                     </div>
                 </div>
 
@@ -259,6 +261,7 @@
                 let if_show_attr_panel=false
                 let if_show_shop_panel=false
                 let ke_coin=0
+                let point=0
 
                 const start_btn_rect = {
                     x: game_canvas_1.width * 0.4,
@@ -311,6 +314,24 @@
                 const ke_coin_rect = {
                     x: game_canvas_1.width * 0.30,
                     y: game_canvas_1.height * 0.0,
+                    w: game_canvas_1.width * 0.1,
+                    h: game_canvas_1.height * 0.05
+                }
+                const point_rect = {
+                    x: game_canvas_1.width * 0.40,
+                    y: game_canvas_1.height * 0.0,
+                    w: game_canvas_1.width * 0.1,
+                    h: game_canvas_1.height * 0.05
+                }
+                const point_to_ke_rect = {
+                    x: game_canvas_1.width * 0.13,
+                    y: game_canvas_1.height * 0.13,
+                    w: game_canvas_1.width * 0.1,
+                    h: game_canvas_1.height * 0.05
+                }
+                const ke_to_point_rect = {
+                    x: game_canvas_1.width * 0.3,
+                    y: game_canvas_1.height * 0.13,
                     w: game_canvas_1.width * 0.1,
                     h: game_canvas_1.height * 0.05
                 }
@@ -378,6 +399,15 @@
                     ctx.textBaseline='middle'
                     ctx.fillText('科币:'+ke_coin, ke_coin_rect.x + ke_coin_rect.w / 2, ke_coin_rect.y + ke_coin_rect.h / 2)
                 }
+                function draw_point(){
+                    ctx.fillStyle='black'
+                    ctx.fillRect(point_rect.x, point_rect.y, point_rect.w, point_rect.h)
+                    ctx.fillStyle='green'
+                    ctx.font='15px sans-serif'
+                    ctx.textAlign='center'
+                    ctx.textBaseline='middle'
+                    ctx.fillText('积分:'+point, point_rect.x + point_rect.w / 2, point_rect.y + point_rect.h / 2)
+                }
                 function draw_attr_panel(){
                     if(!if_show_attr_panel){
                         ctx.clearRect(attr_panel_rect.x, attr_panel_rect.y, attr_panel_rect.w, attr_panel_rect.h)
@@ -392,6 +422,32 @@
                     ctx.fillRect(shop_panel_rect.x, shop_panel_rect.y, shop_panel_rect.w, shop_panel_rect.h)
                     draw_close_shop_button()
                 }
+                function draw_point_to_ke_button(){
+                    ctx.fillStyle='green'
+                    ctx.fillRect(point_to_ke_rect.x, point_to_ke_rect.y, point_to_ke_rect.w, point_to_ke_rect.h)
+                    ctx.fillStyle='white'
+                    ctx.font='15px sans-serif'
+                    ctx.textAlign='center'
+                    ctx.textBaseline='middle'
+                    ctx.fillText('10积分→8科币', point_to_ke_rect.x + point_to_ke_rect.w / 2, point_to_ke_rect.y + point_to_ke_rect.h / 2)
+                    if(point < 10){
+                        ctx.fillStyle='rgba(0,0,0,0.5)'
+                        ctx.fillRect(point_to_ke_rect.x, point_to_ke_rect.y, point_to_ke_rect.w, point_to_ke_rect.h)
+                    }
+                }
+                function draw_ke_to_point_button(){
+                    ctx.fillStyle='green'
+                    ctx.fillRect(ke_to_point_rect.x, ke_to_point_rect.y, ke_to_point_rect.w, ke_to_point_rect.h)
+                    ctx.fillStyle='white'
+                    ctx.font='15px sans-serif'
+                    ctx.textAlign='center'
+                    ctx.textBaseline='middle'
+                    ctx.fillText('10科币→8积分', ke_to_point_rect.x + ke_to_point_rect.w / 2, ke_to_point_rect.y + ke_to_point_rect.h / 2)
+                    if(ke_coin < 10){
+                        ctx.fillStyle='rgba(0,0,0,0.5)'
+                        ctx.fillRect(ke_to_point_rect.x, ke_to_point_rect.y, ke_to_point_rect.w, ke_to_point_rect.h)
+                    }
+                }
 
                 draw_start_button()
                 
@@ -400,11 +456,13 @@
                     if(!user)return
                     const{data} = await supabase.from('game').select('ke_coin').eq('user_id',user.id).maybeSingle()
                     if(data)ke_coin=data.ke_coin
+                    const{data:profile_data} = await supabase.from('profiles').select('point').eq('user_id',user.id).maybeSingle()
+                    if(profile_data)point=profile_data.point
                 }
 
                 //开始按钮点击事件
                 document.addEventListener('click', function(e){
-                    if(if_game_started)return
+                    if(if_game_started || window.location.hash != '#game')return
                     const rect = game_canvas_1.getBoundingClientRect()
                     const clickX = e.clientX - rect.left
                     const clickY = e.clientY - rect.top
@@ -416,13 +474,15 @@
                 })
                 //退出游戏按钮点击事件
                 document.addEventListener('click', function(e){
-                    if(!if_game_started)return
+                    if(!if_game_started || window.location.hash != '#game')return
                     const rect = game_canvas_1.getBoundingClientRect()
                     const clickX = e.clientX - rect.left
                     const clickY = e.clientY - rect.top
                     if(clickX >= exit_btn_rect.x && clickX <= exit_btn_rect.x + exit_btn_rect.w &&
                        clickY >= exit_btn_rect.y && clickY <= exit_btn_rect.y + exit_btn_rect.h){
                         if_game_started=false
+                        if_show_attr_panel=false
+                        if_show_shop_panel=false
                         draw_start_button()
                         //恢复菜单栏
                         const menu_links=document.querySelectorAll('.menu a')
@@ -434,7 +494,7 @@
                 })
                 //属性按钮点击事件
                 document.addEventListener('click', function(e){
-                    if(!if_game_started || if_show_shop_panel || if_show_attr_panel)return
+                    if(!if_game_started || if_show_shop_panel || if_show_attr_panel || window.location.hash != '#game')return
                     const rect = game_canvas_1.getBoundingClientRect()
                     const clickX = e.clientX - rect.left
                     const clickY = e.clientY - rect.top
@@ -445,8 +505,8 @@
                     }
                 })
                 //商店按钮点击事件
-                 document.addEventListener('click', function(e){
-                    if(!if_game_started || if_show_attr_panel || if_show_shop_panel)return
+                document.addEventListener('click', function(e){
+                    if(!if_game_started || if_show_attr_panel || if_show_shop_panel || window.location.hash != '#game')return
                     const rect = game_canvas_1.getBoundingClientRect()
                     const clickX = e.clientX - rect.left
                     const clickY = e.clientY - rect.top
@@ -454,11 +514,59 @@
                        clickY >= shop_btn_rect.y && clickY <= shop_btn_rect.y + shop_btn_rect.h){
                         if_show_shop_panel=true
                         draw_shop_panel()
+                        draw_point_to_ke_button()
+                        draw_ke_to_point_button()
+                    }
+                })
+                //积分兑换科币按钮点击事件
+                document.addEventListener('click', async function(e){
+                    if(!if_show_shop_panel || window.location.hash != '#game')return
+                    const rect = game_canvas_1.getBoundingClientRect()
+                    const clickX = e.clientX - rect.left
+                    const clickY = e.clientY - rect.top
+                    if(clickX >= point_to_ke_rect.x && clickX <= point_to_ke_rect.x + point_to_ke_rect.w &&
+                       clickY >= point_to_ke_rect.y && clickY <= point_to_ke_rect.y + point_to_ke_rect.h){
+                        if(point >= 10){
+                            point -= 10
+                            ke_coin += 8
+                            const {data:{user}}=await supabase.auth.getUser()
+                            if(user){
+                                await supabase.from('profiles').update({point: point}).eq('user_id', user.id)
+                                await supabase.from('game').upsert({user_id: user.id, ke_coin: ke_coin}, {onConflict: 'user_id'})
+                            }
+                            draw_start_game()
+                            draw_shop_panel()
+                            draw_point_to_ke_button()
+                            draw_ke_to_point_button()
+                        }
+                    }
+                })
+                //科币兑换积分按钮点击事件
+                document.addEventListener('click', async function(e){
+                    if(!if_show_shop_panel || window.location.hash != '#game')return
+                    const rect = game_canvas_1.getBoundingClientRect()
+                    const clickX = e.clientX - rect.left
+                    const clickY = e.clientY - rect.top
+                    if(clickX >= ke_to_point_rect.x && clickX <= ke_to_point_rect.x + ke_to_point_rect.w &&
+                       clickY >= ke_to_point_rect.y && clickY <= ke_to_point_rect.y + ke_to_point_rect.h){
+                        if(ke_coin >= 10){
+                            ke_coin -= 10
+                            point += 8
+                            const {data:{user}}=await supabase.auth.getUser()
+                            if(user){
+                                await supabase.from('profiles').update({point: point}).eq('user_id', user.id)
+                                await supabase.from('game').upsert({user_id: user.id, ke_coin: ke_coin}, {onConflict: 'user_id'})
+                            }
+                            draw_start_game()
+                            draw_shop_panel()
+                            draw_point_to_ke_button()
+                            draw_ke_to_point_button()
+                        }
                     }
                 })
                 //关闭面板按钮点击事件
                 document.addEventListener('click', function(e){
-                    if(!if_show_attr_panel)return
+                    if(!if_show_attr_panel || window.location.hash != '#game')return
                     const rect = game_canvas_1.getBoundingClientRect()
                     const clickX = e.clientX - rect.left
                     const clickY = e.clientY - rect.top
@@ -469,7 +577,7 @@
                     }
                 })
                 document.addEventListener('click', function(e){
-                    if(!if_show_shop_panel)return
+                    if(!if_show_shop_panel || window.location.hash != '#game')return
                     const rect = game_canvas_1.getBoundingClientRect()
                     const clickX = e.clientX - rect.left
                     const clickY = e.clientY - rect.top
@@ -486,6 +594,7 @@
                     draw_attr_button()
                     draw_shop_button()
                     draw_ke_coin()
+                    draw_point()
                 }
 
                 async function start_game(){
