@@ -262,6 +262,8 @@
                 let if_show_shop_panel=false
                 let ke_coin=0
                 let point=0
+                let level=1
+                let exp=0
 
                 const start_btn_rect = {
                     x: game_canvas_1.width * 0.4,
@@ -334,6 +336,12 @@
                     y: game_canvas_1.height * 0.13,
                     w: game_canvas_1.width * 0.1,
                     h: game_canvas_1.height * 0.05
+                }
+                const exp_rect = {
+                    x: game_canvas_1.width * 0.15,
+                    y: game_canvas_1.height * 0.13,
+                    w: game_canvas_1.width * 0.3,
+                    h: game_canvas_1.height * 0.02
                 }
                 function draw_start_button(){
                     ctx.clearRect(0,0,game_canvas_1.width,game_canvas_1.height)
@@ -408,6 +416,19 @@
                     ctx.textBaseline='middle'
                     ctx.fillText('积分:'+point, point_rect.x + point_rect.w / 2, point_rect.y + point_rect.h / 2)
                 }
+                function draw_exp(){
+                    ctx.fillStyle='#1a5c1a'
+                    ctx.fillRect(exp_rect.x, exp_rect.y, exp_rect.w, exp_rect.h)
+                    const exp_need=100 * Math.ceil(level / 5)
+                    const exp_percent=exp / exp_need
+                    ctx.fillStyle='green'
+                    ctx.fillRect(exp_rect.x, exp_rect.y, exp_rect.w * exp_percent, exp_rect.h)
+                    ctx.fillStyle='white'
+                    ctx.font='13px sans-serif'
+                    ctx.textAlign='center'
+                    ctx.textBaseline='middle'
+                    ctx.fillText('等级Lv.'+level+'  经验:'+exp+'/'+exp_need, exp_rect.x + exp_rect.w / 2, exp_rect.y + exp_rect.h / 2)
+                }
                 function draw_attr_panel(){
                     if(!if_show_attr_panel){
                         ctx.clearRect(attr_panel_rect.x, attr_panel_rect.y, attr_panel_rect.w, attr_panel_rect.h)
@@ -454,8 +475,12 @@
                 async function load_game_data(){
                     const{data:{user}}=await supabase.auth.getUser()
                     if(!user)return
-                    const{data} = await supabase.from('game').select('ke_coin').eq('user_id',user.id).maybeSingle()
-                    if(data)ke_coin=data.ke_coin
+                    const{data} = await supabase.from('game').select('ke_coin,game_level,game_exp').eq('user_id',user.id).maybeSingle()
+                    if(data){
+                        ke_coin=data.ke_coin
+                        level=data.game_level
+                        exp=data.game_exp
+                    }
                     const{data:profile_data} = await supabase.from('profiles').select('point').eq('user_id',user.id).maybeSingle()
                     if(profile_data)point=profile_data.point
                 }
@@ -502,6 +527,7 @@
                        clickY >= attr_btn_rect.y && clickY <= attr_btn_rect.y + attr_btn_rect.h){
                         if_show_attr_panel=true
                         draw_attr_panel()
+                        draw_exp()
                     }
                 })
                 //商店按钮点击事件
